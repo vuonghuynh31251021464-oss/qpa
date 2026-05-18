@@ -1,7 +1,9 @@
 # ================= IMPORT =================
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-
+import pandas as pd
+import streamlit as st
+from sklearn.ensemble import RandomForestClassifier
 # ================= LOAD DATA =================
 df_gpa = pd.read_csv("GPA - Trang tính1.csv")
 
