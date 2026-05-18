@@ -5,34 +5,25 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import time
 
-st.set_page_config(page_title="Dự đoán GPA AI", layout="wide")
+st.set_page_config(page_title="Dự đoán GPA", layout="centered")
 
-# ================= LOAD DATA & TRAIN MODEL =================
 @st.cache_resource
-def load_model():
-    # Đọc file
+def train_model():
     df = pd.read_csv("GPA - Trang tính1.csv")
     
-    # Mapping cho các cột phân loại
     mapping = {
-        # Attendance
         "Trên 90%": 2,
-        # Learning style
         "Tự học một mình": 0,
         "Kết hợp cả hai": 1,
         "Học nhóm": 2,
-        # Part-time job
         "Không đi làm": 0,
         "Làm dưới 16h/tuần": 1,
         "Làm trên 16h/tuần": 2,
-        # Club
         "Không": 0,
         "Có": 1,
-        # Sleep
         "Dưới 5 tiếng": 0,
         "5 - 7 tiếng": 1,
         "Trên 7 tiếng": 2,
-        # Social media
         "Dưới 2 tiếng": 0,
         "2 - 4 tiếng": 1,
         "4 - 6 tiếng": 2,
@@ -41,101 +32,71 @@ def load_model():
     
     df = df.replace(mapping)
     
-    # Target mapping
     gpa_map = {
         "Dưới 2.0": 0,
         "2.0 - 2.5": 1,
         "2.6 - 3.0": 2,
         "3.1 - 3.5": 3,
-        "3.5 - 4.0": 4,   # Thêm vì dữ liệu có
+        "3.5 - 4.0": 4
     }
     
-    df["GPA_label"] = df["GPA học kỳ gần nhất của bạn là bao nhiêu? (Thang 4)"].map(gpa_map)
+    df["GPA_label"] = df.iloc[:, -1].map(gpa_map)
     
-    # Features
-    X = df.drop([
-        "GPA học kỳ gần nhất của bạn là bao nhiêu? (Thang 4)", 
-        "GPA_label"
-    ], axis=1)
-    
+    X = df.iloc[:, :-2]   # Tất cả cột trừ 2 cột GPA cuối
     y = df["GPA_label"]
     
-    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     
-    model = RandomForestClassifier(
-        n_estimators=200,
-        max_depth=10,
-        min_samples_split=5,
-        random_state=42,
-        class_weight='balanced'
-    )
+    model = RandomForestClassifier(n_estimators=200, random_state=42)
     model.fit(X_train, y_train)
     
     acc = accuracy_score(y_test, model.predict(X_test))
     
-    return model, X.columns.tolist(), acc, gpa_map, df
+    return model, X.columns.tolist(), acc, gpa_map
 
-model, feature_names, accuracy, gpa_map, original_df = load_model()
+model, feature_names, acc, gpa_map = train_model()
 
-# ================= UI =================
+# ================= GIAO DIỆN =================
 st.title("🎓 Dự Đoán GPA Bằng AI")
-st.markdown("**Dựa trên thói quen học tập của sinh viên**")
+st.markdown("Dựa trên thói quen của sinh viên")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    study_hours = st.slider("🕒 Giờ tự học mỗi tuần", 0, 40, 10)
-    num_subjects = st.slider("📚 Số môn đăng ký", 1, 12, 5)
-    attendance = st.selectbox("📍 Tỷ lệ đi học", ["Trên 90%"])
-    learning_style = st.selectbox("📖 Hình thức học", 
-                                 ["Tự học một mình", "Kết hợp cả hai", "Học nhóm"])
+    study = st.slider("Giờ tự học mỗi tuần", 0, 40, 10)
+    subjects = st.slider("Số môn học", 1, 12, 6)
+    attendance = st.selectbox("Tỷ lệ đi học", ["Trên 90%"])
+    learning = st.selectbox("Hình thức học", ["Tự học một mình", "Kết hợp cả hai", "Học nhóm"])
 
 with col2:
-    job = st.selectbox("💼 Làm thêm", 
-                      ["Không đi làm", "Làm dưới 16h/tuần", "Làm trên 16h/tuần"])
-    club = st.selectbox("🎯 Tham gia CLB/Đoàn", ["Không", "Có"])
-    sleep = st.selectbox("😴 Giờ ngủ mỗi đêm", 
-                        ["Dưới 5 tiếng", "5 - 7 tiếng", "Trên 7 tiếng"])
-    social = st.selectbox("📱 Thời gian dùng MXH mỗi ngày", 
-                         ["Dưới 2 tiếng", "2 - 4 tiếng", "4 - 6 tiếng", "Trên 6 tiếng"])
+    job = st.selectbox("Làm thêm", ["Không đi làm", "Làm dưới 16h/tuần", "Làm trên 16h/tuần"])
+    club = st.selectbox("Tham gia CLB", ["Không", "Có"])
+    sleep = st.selectbox("Giờ ngủ mỗi đêm", ["Dưới 5 tiếng", "5 - 7 tiếng", "Trên 7 tiếng"])
+    social = st.selectbox("Thời gian MXH mỗi ngày", ["Dưới 2 tiếng", "2 - 4 tiếng", "4 - 6 tiếng", "Trên 6 tiếng"])
 
-# Tạo input DataFrame
-input_dict = {
-    feature_names[0]: study_hours,
-    feature_names[1]: num_subjects,
-    feature_names[2]: mapping.get(attendance, 2),
-    feature_names[3]: mapping.get(learning_style, 1),
-    feature_names[4]: mapping.get(job, 0),
-    feature_names[5]: mapping.get(club, 0),
-    feature_names[6]: mapping.get(sleep, 1),
-    feature_names[7]: mapping.get(social, 1),
-}
+input_data = pd.DataFrame([{
+    feature_names[0]: study,
+    feature_names[1]: subjects,
+    feature_names[2]: mapping[attendance],
+    feature_names[3]: mapping[learning],
+    feature_names[4]: mapping[job],
+    feature_names[5]: mapping[club],
+    feature_names[6]: mapping[sleep],
+    feature_names[7]: mapping[social],
+}])
 
-input_df = pd.DataFrame([input_dict])[feature_names]
-
-# ================= PREDICTION =================
-if st.button("🚀 Dự đoán GPA của tôi", type="primary", use_container_width=True):
+if st.button("🚀 Dự đoán GPA", type="primary", use_container_width=True):
     with st.spinner("AI đang phân tích..."):
-        time.sleep(1.1)
-        pred_label = model.predict(input_df)[0]
-        proba = model.predict_proba(input_df)[0]
-        
-    inv_gpa = {v: k for k, v in gpa_map.items()}
-    predicted_gpa = inv_gpa[pred_label]
-    confidence = proba.max()
+        time.sleep(1.2)
+        pred = model.predict(input_data)[0]
+        proba = model.predict_proba(input_data)[0].max()
     
-    st.success(f"**GPA dự đoán: {predicted_gpa}**")
-    st.progress(float(confidence))
-    st.caption(f"Độ tin cậy: **{confidence:.1%}**")
+    result_map = {v: k for k, v in gpa_map.items()}
+    st.success(f"**GPA dự đoán: {result_map[pred]}**")
+    st.progress(float(proba))
+    st.caption(f"Độ tin cậy: **{proba:.1%}**")
 
-# ================= METRICS =================
 st.divider()
-c1, c2, c3 = st.columns(3)
-c1.metric("Độ chính xác mô hình", f"{accuracy:.1%}")
-c2.metric("Số mẫu dữ liệu", len(original_df))
-c3.metric("Số features", len(feature_names))
-
-st.caption("💡 *Model được huấn luyện trên dữ liệu thực tế của sinh viên. Kết quả chỉ mang tính tham khảo.*")
+st.metric("Độ chính xác mô hình", f"{acc:.2%}")
