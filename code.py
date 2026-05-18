@@ -1,1 +1,98 @@
+# ================= GPA MODEL =================
 
+df_gpa = pd.read_csv("GPA - Trang tính1.csv")
+
+# encode text -> số
+mapping = {
+    "Dưới 5 tiếng": 0,
+    "5 - 7 tiếng": 1,
+    "Trên 7 tiếng": 2,
+
+    "Dưới 2 tiếng": 0,
+    "2 - 4 tiếng": 1,
+    "4 - 6 tiếng": 2,
+
+    "Không đi làm": 0,
+    "Làm dưới 16h/tuần": 1,
+    "Làm trên 16h/tuần": 2,
+
+    "Không": 0,
+    "Có": 1,
+
+    "Tự học một mình": 0,
+    "Kết hợp cả hai": 1,
+
+    "Trên 90%": 2
+}
+
+df_gpa = df_gpa.replace(mapping)
+
+# encode GPA label
+gpa_map = {
+    "Dưới 2.0": 0,
+    "2.0 - 2.5": 1,
+    "2.6 - 3.0": 2,
+    "3.1 - 3.5": 3,
+    "Trên 3.5": 4
+}
+
+df_gpa["GPA_label"] = df_gpa[
+    "GPA học kỳ gần nhất của bạn là bao nhiêu? (Thang 4)"
+].map(gpa_map)
+
+X_gpa = df_gpa.drop(
+    ["GPA học kỳ gần nhất của bạn là bao nhiêu? (Thang 4)", "GPA_label"],
+    axis=1
+)
+
+y_gpa = df_gpa["GPA_label"]
+
+from sklearn.ensemble import RandomForestClassifier
+
+model_gpa = RandomForestClassifier(n_estimators=100, random_state=42)
+model_gpa.fit(X_gpa, y_gpa)
+
+# ================= UI GPA =================
+
+st.sidebar.markdown("---")
+if st.sidebar.button("🎓 Dự đoán GPA"):
+    st.session_state.page = "gpa"
+
+if "page" in st.session_state and st.session_state.page == "gpa":
+
+    st.header("🎓 Dự đoán GPA")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        study = st.slider("Giờ tự học / tuần", 0, 40, 10)
+        subjects = st.slider("Số môn học", 1, 10, 5)
+        attendance = st.selectbox("Đi học", ["Trên 90%"])
+
+        learning = st.selectbox("Cách học", ["Tự học một mình", "Kết hợp cả hai"])
+
+    with col2:
+        job = st.selectbox("Làm thêm", ["Không đi làm", "Làm dưới 16h/tuần", "Làm trên 16h/tuần"])
+        club = st.selectbox("CLB", ["Không", "Có"])
+        sleep = st.selectbox("Ngủ", ["Dưới 5 tiếng", "5 - 7 tiếng", "Trên 7 tiếng"])
+        social = st.selectbox("MXH", ["Dưới 2 tiếng", "2 - 4 tiếng", "4 - 6 tiếng"])
+
+    input_gpa = pd.DataFrame([[
+        study,
+        subjects,
+        mapping[attendance],
+        mapping[learning],
+        mapping[job],
+        mapping[club],
+        mapping[sleep],
+        mapping[social]
+    ]], columns=X_gpa.columns)
+
+    if st.button("🚀 Dự đoán GPA"):
+
+        pred = model_gpa.predict(input_gpa)[0]
+
+        inv_map = {v: k for k, v in gpa_map.items()}
+        result = inv_map[pred]
+
+        st.success(f"🎓 GPA dự đoán: {result}")
