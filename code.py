@@ -7,51 +7,47 @@ import time
 
 st.set_page_config(page_title="Dự đoán GPA", layout="centered")
 
+# ================= MAPPING (Đưa ra ngoài) =================
+mapping = {
+    "Trên 90%": 2,
+    "Tự học một mình": 0,
+    "Kết hợp cả hai": 1,
+    "Học nhóm": 2,
+    "Không đi làm": 0,
+    "Làm dưới 16h/tuần": 1,
+    "Làm trên 16h/tuần": 2,
+    "Không": 0,
+    "Có": 1,
+    "Dưới 5 tiếng": 0,
+    "5 - 7 tiếng": 1,
+    "Trên 7 tiếng": 2,
+    "Dưới 2 tiếng": 0,
+    "2 - 4 tiếng": 1,
+    "4 - 6 tiếng": 2,
+    "Trên 6 tiếng": 3,
+}
+
+gpa_map = {
+    "Dưới 2.0": 0,
+    "2.0 - 2.5": 1,
+    "2.6 - 3.0": 2,
+    "3.1 - 3.5": 3,
+    "3.5 - 4.0": 4
+}
+
 @st.cache_resource
 def train_model():
     df = pd.read_csv("GPA - Trang tính1.csv")
     
-    # Mapping
-    mapping = {
-        "Trên 90%": 2,
-        "Tự học một mình": 0,
-        "Kết hợp cả hai": 1,
-        "Học nhóm": 2,
-        "Không đi làm": 0,
-        "Làm dưới 16h/tuần": 1,
-        "Làm trên 16h/tuần": 2,
-        "Không": 0,
-        "Có": 1,
-        "Dưới 5 tiếng": 0,
-        "5 - 7 tiếng": 1,
-        "Trên 7 tiếng": 2,
-        "Dưới 2 tiếng": 0,
-        "2 - 4 tiếng": 1,
-        "4 - 6 tiếng": 2,
-        "Trên 6 tiếng": 3,
-    }
-    
     df = df.replace(mapping)
-    
-    # GPA Label
-    gpa_map = {
-        "Dưới 2.0": 0,
-        "2.0 - 2.5": 1,
-        "2.6 - 3.0": 2,
-        "3.1 - 3.5": 3,
-        "3.5 - 4.0": 4
-    }
     
     df["GPA_label"] = df.iloc[:, -1].map(gpa_map)
     
-    X = df.iloc[:, :-2]      # Tất cả cột trừ 2 cột GPA
+    X = df.iloc[:, :-2]
     y = df["GPA_label"]
     
-    # Train test split - ĐÃ SỬA LỖI stratify
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, 
-        test_size=0.25, 
-        random_state=42
+        X, y, test_size=0.25, random_state=42
     )
     
     model = RandomForestClassifier(
@@ -63,11 +59,11 @@ def train_model():
     
     acc = accuracy_score(y_test, model.predict(X_test))
     
-    return model, X.columns.tolist(), acc, gpa_map
+    return model, X.columns.tolist(), acc
 
 
 # ================= TRAIN MODEL =================
-model, feature_names, acc, gpa_map = train_model()
+model, feature_names, acc = train_model()
 
 # ================= UI =================
 st.title("🎓 Dự Đoán GPA Bằng AI")
@@ -91,7 +87,7 @@ with col2:
     social = st.selectbox("📱 Thời gian MXH mỗi ngày", 
                          ["Dưới 2 tiếng", "2 - 4 tiếng", "4 - 6 tiếng", "Trên 6 tiếng"])
 
-# Tạo input
+# ================= INPUT DATA =================
 input_data = pd.DataFrame([{
     feature_names[0]: study,
     feature_names[1]: subjects,
