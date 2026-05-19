@@ -424,40 +424,49 @@ def augment_low_attendance(df_real: pd.DataFrame, rng: np.random.Generator) -> p
 
 
 @st.cache_resource
+@st.cache_resource
 def train_model():
-    df_real = pd.read_csv("GPA - Trang tính1.csv")
-
-    # Augment dữ liệu
+    try:
+        df_real = pd.read_csv("GPA - Trang tính1.csv")   # hoặc tên file chính xác
+    except FileNotFoundError:
+        st.error("❌ Không tìm thấy file CSV: 'GPA - Trang tính1.csv'")
+        st.stop()
+    
     rng = np.random.default_rng(42)
     df_aug = augment_low_attendance(df_real, rng)
-
+    
     # Encode
     df_enc = df_aug.copy()
-    att_col  = df_enc.columns[2]
-    gpa_col  = df_enc.columns[-1]
-
+    att_col = df_enc.columns[2]      # Cột attendance (index 2)
+    gpa_col = df_enc.columns[-1]     # Cột GPA cuối cùng
+    
     df_enc[att_col] = df_enc[att_col].map(attendance_map)
-
+    
     for col in df_enc.columns[:-1]:
-        if df_enc[col].dtype == object:
+        if df_enc[col].dtype == "object":
             df_enc[col] = df_enc[col].map(mapping)
-
+    
     df_enc["GPA_label"] = df_enc[gpa_col].map(gpa_map)
-    df_enc = df_enc.dropna(subset=["GPA_label"])
+    df_enc = df_enc.dropna(subset=["GPA_label"]).copy()
     df_enc["GPA_label"] = df_enc["GPA_label"].astype(int)
-
-    X = df_enc.iloc[:, :-2]
+    
+    X = df_enc.iloc[:, :-2]   # Loại 2 cột cuối (GPA gốc + GPA_label)
     y = df_enc["GPA_label"]
-
+    
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
     )
+    
     model = RandomForestClassifier(
-        n_estimators=300, random_state=42, class_weight="balanced", max_depth=12
+        n_estimators=300, 
+        random_state=42, 
+        class_weight="balanced", 
+        max_depth=12,
+        n_jobs=-1
     )
     model.fit(X_train, y_train)
     acc = accuracy_score(y_test, model.predict(X_test))
-
+    
     return model, X.columns.tolist(), acc, df_aug, X_train, X_test, y_train, y_test
 
 
