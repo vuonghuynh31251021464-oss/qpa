@@ -14,74 +14,87 @@ st.set_page_config(page_title="GPA AI - UEH", layout="wide", page_icon="🎓")
 # ================= UEH GENZ THEME CSS =================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap');
+/* Be Vietnam Pro: hỗ trợ đầy đủ Unicode tiếng Việt */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap');
 
-/* ---- Root palette ---- */
+/* ---- Root palette — Dark mode UEH ---- */
 :root {
-    --green-dark:   #1a5c2a;
+    --bg:           #0f1e14;   /* nền chính — xanh đậm gần đen */
+    --bg-card:      #162b1d;   /* card nền */
+    --bg-card2:     #1c3526;   /* card hover / alt */
+    --border:       #2a5038;   /* viền */
+    --green-bright: #3dba68;   /* xanh nổi bật */
     --green-mid:    #2d8c4e;
-    --green-bright: #3dba68;
-    --green-light:  #d4f5e0;
+    --green-dark:   #1a5c2a;
+    --green-text:   #7de0a4;   /* chữ xanh trên nền tối */
     --orange:       #f5841f;
-    --orange-light: #fde8cc;
+    --orange-soft:  #f5a94e;
+    --orange-dim:   #3d2408;   /* bg cam mờ */
+    --text-main:    #e8f5ee;   /* chữ chính — trắng xanh */
+    --text-sub:     #8fbfa0;   /* chữ phụ */
     --white:        #ffffff;
-    --offwhite:     #f7faf8;
-    --text-dark:    #0e1f16;
-    --text-muted:   #5a7065;
-    --card-bg:      #ffffff;
-    --border:       #d0e8d8;
 }
 
 /* ---- Global ---- */
-html, body, [class*="css"] {
-    font-family: 'Space Grotesk', sans-serif !important;
-    background-color: var(--offwhite) !important;
-    color: var(--text-dark) !important;
+html, body, [class*="css"], * {
+    font-family: 'Be Vietnam Pro', sans-serif !important;
 }
-
-/* ---- Animated gradient header bar ---- */
+.stApp, [data-testid="stAppViewContainer"] {
+    background-color: var(--bg) !important;
+}
 .block-container {
+    background-color: var(--bg) !important;
     padding-top: 1.5rem !important;
+}
+/* Tất cả text mặc định sáng trên nền tối */
+p, span, div, li, td, th, label,
+[data-testid="stMarkdownContainer"] * {
+    color: var(--text-main) !important;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: var(--green-text) !important;
+    font-weight: 800 !important;
 }
 
 /* ---- Hero banner ---- */
 .hero-banner {
-    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 55%, var(--orange) 100%);
+    background: linear-gradient(135deg, #0d3d1e 0%, var(--green-mid) 60%, var(--orange) 100%);
     border-radius: 20px;
     padding: 2.5rem 2rem 2rem 2rem;
     margin-bottom: 1.8rem;
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--border);
 }
 .hero-banner::before {
     content: "UEH";
     position: absolute;
     right: -10px;
     top: -20px;
-    font-family: 'Syne', sans-serif;
     font-size: 9rem;
-    font-weight: 800;
-    color: rgba(255,255,255,0.06);
+    font-weight: 900;
+    color: rgba(255,255,255,0.05);
     letter-spacing: -4px;
     pointer-events: none;
 }
 .hero-banner h1 {
-    font-family: 'Syne', sans-serif !important;
     font-size: 2.4rem !important;
-    font-weight: 800 !important;
+    font-weight: 900 !important;
     color: #ffffff !important;
     margin: 0 0 0.3rem 0 !important;
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .hero-banner p {
-    color: rgba(255,255,255,0.82) !important;
+    color: rgba(255,255,255,0.85) !important;
     font-size: 1rem !important;
     margin: 0 !important;
+    font-weight: 500 !important;
 }
 .hero-badge {
     display: inline-block;
     background: var(--orange);
-    color: #fff;
+    color: #fff !important;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 1.5px;
@@ -91,50 +104,41 @@ html, body, [class*="css"] {
     margin-bottom: 0.7rem;
 }
 
-/* ---- Section titles ---- */
-h2, h3 {
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    color: var(--green-dark) !important;
-}
-
 /* ---- Cards ---- */
 .ueh-card {
-    background: var(--card-bg);
+    background: var(--bg-card);
     border: 1.5px solid var(--border);
     border-radius: 16px;
     padding: 1.4rem 1.5rem;
     margin-bottom: 1rem;
-    box-shadow: 0 2px 12px rgba(45,140,78,0.07);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 .ueh-card h4 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--green-dark);
-    margin: 0 0 0.5rem 0;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: var(--green-text) !important;
+    margin: 0 0 0.8rem 0 !important;
 }
 
 /* ---- Metric cards ---- */
 [data-testid="metric-container"] {
-    background: var(--card-bg) !important;
+    background: var(--bg-card) !important;
     border: 1.5px solid var(--border) !important;
     border-radius: 16px !important;
     padding: 1rem 1.2rem !important;
-    box-shadow: 0 2px 10px rgba(45,140,78,0.08) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
 }
 [data-testid="metric-container"] label {
-    color: var(--text-muted) !important;
+    color: var(--text-sub) !important;
     font-size: 0.78rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 [data-testid="metric-container"] [data-testid="stMetricValue"] {
-    color: var(--green-dark) !important;
-    font-family: 'Syne', sans-serif !important;
-    font-size: 1.8rem !important;
-    font-weight: 800 !important;
+    color: var(--green-text) !important;
+    font-size: 1.9rem !important;
+    font-weight: 900 !important;
 }
 
 /* ---- Primary button ---- */
@@ -143,47 +147,60 @@ h2, h3 {
     color: #fff !important;
     border: none !important;
     border-radius: 12px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
     font-size: 1rem !important;
     padding: 0.65rem 2rem !important;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 18px rgba(245,132,31,0.35) !important;
+    box-shadow: 0 4px 20px rgba(245,132,31,0.4) !important;
     transition: transform 0.15s ease, box-shadow 0.15s ease !important;
 }
 .stButton > button[kind="primary"]:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(245,132,31,0.45) !important;
-}
-.stButton > button[kind="primary"]:active {
-    transform: translateY(0px) !important;
+    box-shadow: 0 8px 28px rgba(245,132,31,0.55) !important;
 }
 
 /* ---- Secondary buttons ---- */
 .stButton > button {
+    background: var(--bg-card2) !important;
     border-radius: 10px !important;
-    font-family: 'Space Grotesk', sans-serif !important;
     font-weight: 600 !important;
-    border-color: var(--green-mid) !important;
-    color: var(--green-dark) !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
 }
 
-/* ---- Selectbox & Slider ---- */
+/* ---- Selectbox ---- */
 [data-baseweb="select"] > div {
     border-radius: 10px !important;
     border-color: var(--border) !important;
-    background: var(--card-bg) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
 }
 [data-baseweb="select"] > div:focus-within {
     border-color: var(--green-bright) !important;
-    box-shadow: 0 0 0 3px rgba(61,186,104,0.18) !important;
+    box-shadow: 0 0 0 3px rgba(61,186,104,0.2) !important;
 }
-.stSlider [data-baseweb="slider"] [role="slider"] {
-    background: var(--green-mid) !important;
-    border-color: var(--orange) !important;
+[data-baseweb="select"] span,
+[data-baseweb="select"] div {
+    color: var(--text-main) !important;
 }
-.stSlider [data-baseweb="slider"] div[data-testid*="thumb"] {
-    background: var(--orange) !important;
+/* Dropdown menu */
+[data-baseweb="popover"] li,
+[data-baseweb="menu"] li {
+    background: var(--bg-card2) !important;
+    color: var(--text-main) !important;
+}
+[data-baseweb="popover"] li:hover,
+[data-baseweb="menu"] li:hover {
+    background: var(--border) !important;
+}
+
+/* ---- Slider ---- */
+[data-testid="stSlider"] label {
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+}
+[data-testid="stSlider"] [data-testid="stTickBarMin"],
+[data-testid="stSlider"] [data-testid="stTickBarMax"] {
+    color: var(--text-sub) !important;
 }
 
 /* ---- Progress bar ---- */
@@ -192,23 +209,13 @@ h2, h3 {
     border-radius: 999px !important;
 }
 .stProgress > div > div {
-    background: var(--green-light) !important;
+    background: var(--bg-card2) !important;
     border-radius: 999px !important;
-}
-
-/* ---- Success box ---- */
-.stAlert[data-baseweb="notification"] {
-    border-radius: 14px !important;
-    border-left: 5px solid var(--green-bright) !important;
-    background: var(--green-light) !important;
-    color: var(--green-dark) !important;
-    font-weight: 600 !important;
-    font-size: 1.05rem !important;
 }
 
 /* ---- Tabs ---- */
 .stTabs [data-baseweb="tab-list"] {
-    background: var(--card-bg) !important;
+    background: var(--bg-card) !important;
     border-radius: 12px !important;
     border: 1.5px solid var(--border) !important;
     padding: 4px !important;
@@ -216,11 +223,11 @@ h2, h3 {
 }
 .stTabs [data-baseweb="tab"] {
     border-radius: 9px !important;
-    font-family: 'Space Grotesk', sans-serif !important;
-    font-weight: 600 !important;
-    color: var(--text-muted) !important;
+    font-weight: 700 !important;
+    color: var(--text-sub) !important;
     padding: 0.45rem 1.1rem !important;
     transition: all 0.2s !important;
+    background: transparent !important;
 }
 .stTabs [aria-selected="true"] {
     background: linear-gradient(135deg, var(--green-mid), var(--green-dark)) !important;
@@ -229,33 +236,26 @@ h2, h3 {
 
 /* ---- Sidebar ---- */
 [data-testid="stSidebar"] {
-    background: var(--green-dark) !important;
-    border-right: none !important;
+    background: #0a1710 !important;
+    border-right: 1px solid var(--border) !important;
 }
 [data-testid="stSidebar"] * {
-    color: #e8f5ee !important;
-}
-[data-testid="stSidebar"] .stRadio label {
-    font-weight: 600 !important;
-    font-size: 0.92rem !important;
+    color: var(--text-main) !important;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1 {
-    color: #ffffff !important;
-    font-family: 'Syne', sans-serif !important;
+    color: var(--green-text) !important;
     font-size: 1.3rem !important;
-    font-weight: 800 !important;
+    font-weight: 900 !important;
     border-bottom: 2px solid var(--orange) !important;
     padding-bottom: 0.5rem !important;
     margin-bottom: 1rem !important;
 }
-[data-testid="stSidebar"] [role="radiogroup"] {
-    gap: 6px !important;
-}
 [data-testid="stSidebar"] [data-baseweb="radio"] {
-    background: rgba(255,255,255,0.07) !important;
+    background: rgba(255,255,255,0.05) !important;
     border-radius: 10px !important;
     padding: 0.5rem 0.8rem !important;
     transition: background 0.2s !important;
+    margin-bottom: 4px !important;
 }
 [data-testid="stSidebar"] [data-baseweb="radio"]:has(input:checked) {
     background: var(--orange) !important;
@@ -268,8 +268,8 @@ hr {
 }
 
 /* ---- Caption ---- */
-.stCaption {
-    color: var(--text-muted) !important;
+.stCaption, [data-testid="stCaptionContainer"] * {
+    color: var(--text-sub) !important;
     font-size: 0.8rem !important;
 }
 
@@ -278,31 +278,41 @@ hr {
     border-top-color: var(--orange) !important;
 }
 
-/* ---- Labels ---- */
-label, .stSelectbox label, .stSlider label {
-    font-weight: 600 !important;
-    color: var(--text-dark) !important;
+/* ---- Input labels ---- */
+label {
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
     font-size: 0.88rem !important;
+}
+
+/* ---- Alert/Success ---- */
+[data-testid="stAlert"] {
+    background: rgba(61,186,104,0.12) !important;
+    border-left: 4px solid var(--green-bright) !important;
+    border-radius: 12px !important;
+}
+[data-testid="stAlert"] * {
+    color: var(--green-text) !important;
+    font-weight: 600 !important;
 }
 
 /* ---- Result chip ---- */
 .gpa-result-chip {
     display: inline-block;
     background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
-    color: #fff;
-    font-family: 'Syne', sans-serif;
-    font-size: 1.6rem;
-    font-weight: 800;
-    padding: 0.7rem 2rem;
+    color: #fff !important;
+    font-size: 1.7rem;
+    font-weight: 900;
+    padding: 0.7rem 2.2rem;
     border-radius: 50px;
     margin: 0.5rem 0;
-    letter-spacing: -0.5px;
-    box-shadow: 0 6px 20px rgba(45,140,78,0.3);
+    box-shadow: 0 6px 24px rgba(45,140,78,0.45);
+    border: 1px solid var(--green-bright);
 }
 .confidence-label {
     font-size: 0.82rem;
     font-weight: 700;
-    color: var(--orange);
+    color: var(--orange-soft) !important;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 0.3rem;
@@ -313,13 +323,13 @@ label, .stSelectbox label, .stSlider label {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--orange-light);
+    background: var(--orange-dim);
     border: 1.5px solid var(--orange);
     border-radius: 12px;
     padding: 0.5rem 1rem;
     font-weight: 700;
     font-size: 0.9rem;
-    color: #b85e0a;
+    color: var(--orange-soft) !important;
 }
 </style>
 """, unsafe_allow_html=True)
