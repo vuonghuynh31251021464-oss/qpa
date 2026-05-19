@@ -427,44 +427,41 @@ def augment_low_attendance(df_real: pd.DataFrame, rng: np.random.Generator) -> p
 def train_model():
     try:
         df_real = pd.read_csv("GPA - Trang tính1.csv")
+        st.success("✅ Đọc file CSV thành công")
     except Exception as e:
-        st.error(f"❌ Không đọc được file CSV: {e}")
+        st.error(f"❌ Không tìm thấy hoặc không đọc được file: {e}")
+        st.info("📌 Kiểm tra tên file có đúng là **'GPA - Trang tính1.csv'** không?")
         st.stop()
 
     rng = np.random.default_rng(42)
     df_aug = augment_low_attendance(df_real, rng)
-    
-    df_enc = df_aug.copy()
-    att_col = df_enc.columns[2]   # Cột attendance
-    gpa_col = df_enc.columns[-1]  # Cột GPA gốc
 
-    # === ENCODING AN TOÀN ===
+    df_enc = df_aug.copy()
+    att_col = df_enc.columns[2]
+    gpa_col = df_enc.columns[-1]
+
+    # Encoding
     df_enc[att_col] = df_enc[att_col].map(attendance_map)
     
-    for col in df_enc.columns[:-1]:
+    for col in list(df_enc.columns[:-1]):
         if df_enc[col].dtype == "object":
             df_enc[col] = df_enc[col].map(mapping)
-    
-    # Tạo target
+
     df_enc["GPA_label"] = df_enc[gpa_col].map(gpa_map)
     df_enc = df_enc.dropna(subset=["GPA_label"]).copy()
     df_enc["GPA_label"] = df_enc["GPA_label"].astype(int)
 
-    # === CHUYỂN TOÀN BỘ X thành numeric + xử lý NaN ===
-    X = df_enc.iloc[:, :-2].copy()   # Loại 2 cột GPA cuối
+    X = df_enc.iloc[:, :-2].copy()
     y = df_enc["GPA_label"]
 
-    # Debug: Kiểm tra cột còn object hoặc NaN
-    object_cols = X.select_dtypes(include=['object']).columns.tolist()
-    if object_cols:
-        st.error(f"⚠️ Còn cột object chưa encode: {object_cols}")
+    # === FIX QUAN TRỌNG: Chuyển hết về numeric ===
+    X = X.apply(pd.to_numeric, errors='coerce')
+    X = X.fillna(X.median())
+
+    # Kiểm tra cột còn object
+    if len(X.select_dtypes(include=['object']).columns) > 0:
+        st.error("⚠️ Còn cột dạng text chưa được encode!")
         st.stop()
-    
-    # Fill NaN nếu có (dù ít)
-    X = X.fillna(X.median(numeric_only=True))
-    
-    # Đảm bảo tất cả là số
-    X = X.astype(float)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, random_state=42, stratify=y
@@ -472,36 +469,48 @@ def train_model():
 
     model = RandomForestClassifier(
         n_estimators=300,
+        max_depth=12,
         random_state=42,
         class_weight="balanced",
-        max_depth=12,
         n_jobs=-1
     )
     model.fit(X_train, y_train)
-    
+
     acc = accuracy_score(y_test, model.predict(X_test))
     
-    return model, X.columns.tolist(), acc, df_aug, X_train, X_test, y_train, y_test
+    return model, X.columns.tolist(), float(acc), df_aug, X_train, X_test, y_train, y_test
 # ================= SIDEBAR =================
 with st.sidebar:
     st.markdown("# 🎓 GPA AI · UEH")
     st.markdown("<hr style='border-color:#3dba68;margin:0.5rem 0 1rem 0'/>", unsafe_allow_html=True)
+    
     page = st.radio(
         "Chọn chức năng",
         ["🤖 Dự đoán GPA", "📊 Phân tích dữ liệu khảo sát"],
         label_visibility="collapsed"
     )
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(
-        f"""<div style='background:rgba(255,255,255,0.1);border-radius:12px;padding:0.8rem 1rem;
-            font-size:0.82rem;color:#c8e6d0'>
-        📌 Dữ liệu từ <b>200+ sinh viên</b> UEH<br>
-        🔄 Augmented với logic attendance<br>
-        🎯 Model accuracy: <b style='color:#f5841f'>{acc:.1%}</b>
-        </div>""",
-        unsafe_allow_html=True,
-    )
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Load model với try-except
+    try:
+        model, feature_names, acc, df_raw, X_train, X_test, y_train, y_test = train_model()
+        
+        st.markdown(
+            f"""<div style='background:rgba(255,255,255,0.1);border-radius:12px;padding:0.8rem 1rem;
+                font-size:0.82rem;color:#c8e6d0'>
+            📌 Dữ liệu từ <b>200+ sinh viên</b> UEH<br>
+            🔄 Augmented với logic attendance<br>
+            🎯 Model accuracy: <b style='color:#f5841f'>{acc:.1%}</b>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+        
+    except Exception as e:
+        st.error("❌ Không train được model")
+        st.warning(str(e))
+        acc = 0.0
+        feature_names = []
 # ================= TRANG DỰ ĐOÁN =================
 if page == "🤖 Dự đoán GPA":
 
