@@ -427,7 +427,7 @@ def augment_low_attendance(df_real: pd.DataFrame, rng: np.random.Generator) -> p
 def train_model():
     try:
         df_real = pd.read_csv("GPA - Trang tính1.csv")
-        st.success("✅ Đọc file CSV thành công")
+        
     except Exception as e:
         st.error(f"❌ Không tìm thấy hoặc không đọc được file: {e}")
         st.info("📌 Kiểm tra tên file có đúng là **'GPA - Trang tính1.csv'** không?")
