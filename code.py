@@ -651,7 +651,7 @@ else:
 
     with tab1:
         c1, c2, c3 = st.columns(3)
-        c1.metric("👥 Tổng sinh viên (augmented)", len(df_raw) (222 form + 180 ảo ))
+        c1.metric("👥 Tổng sinh viên (augmented)", len(df_raw),(222 form + 180 ảo ))
         c2.metric("🔢 Số features", len(feature_names))
         c3.metric("🎯 Model accuracy", f"{acc:.2%}")
 
